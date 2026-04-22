@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎨 Studio Paint Pro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h2>🎨 Studio Paint Pro <span id="autosave-indicator" class="autosave-indicator"></span></h2>
+    </header>
+
+    <!-- ── MAIN TOOLBAR ── -->
+    <div id="toolbar" role="toolbar" aria-label="Main Toolbar">
+
+        <!-- Drawing Tools -->
+        <div class="tool-group">
+            <button onclick="setTool('free')"       id="tool-free"       class="active" title="Freehand (F)">🖊️ Free</button>
+            <button onclick="setTool('rect')"        id="tool-rect"                      title="Rectangle (R)">⬛ Rect</button>
+            <button onclick="setTool('roundrect')"   id="tool-roundrect"                 title="Rounded Rect (Q)">▢ Round</button>
+            <button onclick="setTool('circle')"      id="tool-circle"                    title="Circle (C)">⚪ Circle</button>
+            <button onclick="setTool('ellipse')"     id="tool-ellipse"                   title="Ellipse (E)">🔵 Ellipse</button>
+            <button onclick="setTool('triangle')"    id="tool-triangle"                  title="Triangle (T)">🔺 Triangle</button>
+            <button onclick="setTool('diamond')"     id="tool-diamond"                   title="Diamond (D)">💎 Diamond</button>
+            <button onclick="setTool('star')"        id="tool-star"                      title="Star (U)">⭐ Star</button>
+            <button onclick="setTool('pentagon')"    id="tool-pentagon"                  title="Pentagon (N)">⬠ Pentagon</button>
+            <button onclick="setTool('hexagon')"     id="tool-hexagon"                   title="Hexagon (H)">⬡ Hexagon</button>
+            <button onclick="setTool('arrow')"       id="tool-arrow"                     title="Arrow (A)">➡️ Arrow</button>
+            <button onclick="setTool('line')"        id="tool-line"                      title="Line (L)">📏 Line</button>
+            <button onclick="setTool('bezier')"      id="tool-bezier"                    title="Bézier Curve (B)">〰️ Bézier</button>
+            <button onclick="setTool('select')"      id="tool-select"                    title="Marquee Select (S)">⬚ Select</button>
+            <button onclick="setTool('text')"        id="tool-text"                      title="Text Tool (W)">🔤 Text</button>
+            <button onclick="setTool('paint')"       id="tool-paint"                     title="Paint Bucket (P)">🪣 Paint</button>
+            <button onclick="setTool('eyedropper')"  id="tool-eyedropper"                title="Eyedropper (I)">💉 Pick</button>
+            <button onclick="changeFreeMode('eraser')" id="tool-eraser"                  title="Eraser (X)">🧽 Eraser</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Modifiers -->
+        <div class="tool-group">
+            <button id="btn-gradient"  onclick="toggleGradient()"  title="Gradient Fill">🌈 Gradient</button>
+            <button id="btn-fill"      onclick="toggleFill()"       title="Fill Shapes">🔲 Fill</button>
+            <button id="btn-pressure"  onclick="togglePressure()"   title="Pressure Sensitivity">✒️ Pressure</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Colors -->
+        <div class="tool-group color-group">
+            <div class="slider-group">
+                <label for="col">Start</label>
+                <input type="color" id="col" value="#000000">
+            </div>
+            <div class="slider-group" id="col2-wrapper" style="opacity: 0.3; transition: opacity 0.3s ease; pointer-events: none;">
+                <label for="col2">End</label>
+                <input type="color" id="col2" value="#ffffff">
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Gradient Settings -->
+        <div class="tool-group" id="gradient-settings" style="display: none;">
+            <div class="slider-group">
+                <label>Pattern</label>
+                <select id="gradient-type" class="tool-select">
+                    <option value="linear">Linear</option>
+                    <option value="radial">Radial</option>
+                    <option value="conical">Conical</option>
+                </select>
+            </div>
+            <div class="slider-group" id="angle-control">
+                <label>Angle</label>
+                <input type="range" id="gradient-angle" min="0" max="360" value="180"
+                    oninput="document.getElementById('angleVal').innerText = this.value + '°'">
+                <span id="angleVal" class="val-badge">180°</span>
+            </div>
+        </div>
+
+        <!-- Sliders -->
+        <div class="tool-group">
+            <div class="slider-group">
+                <label>Size</label>
+                <input type="range" id="brushSize" min="1" max="80" value="5"
+                    oninput="document.getElementById('brushSizeVal').innerText = this.value">
+                <span id="brushSizeVal" class="val-badge">5</span>
+            </div>
+            <div class="slider-group">
+                <label>Opacity</label>
+                <input type="range" id="opacity" min="1" max="100" value="100"
+                    oninput="document.getElementById('opacityVal').innerText = this.value + '%'">
+                <span id="opacityVal" class="val-badge">100%</span>
+            </div>
+            <div class="slider-group">
+                <label>Tolerance</label>
+                <input type="range" id="tolerance-slider" min="0" max="100" value="40"
+                    oninput="document.getElementById('toleranceVal').innerText = this.value">
+                <span id="toleranceVal" class="val-badge">40</span>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Blend Mode -->
+        <div class="tool-group">
+            <div class="slider-group">
+                <label>Blend</label>
+                <select id="blend-mode" class="tool-select"
+                    onchange="blendMode = this.value">
+                    <option value="source-over">Normal</option>
+                    <option value="multiply">Multiply</option>
+                    <option value="screen">Screen</option>
+                    <option value="overlay">Overlay</option>
+                    <option value="darken">Darken</option>
+                    <option value="lighten">Lighten</option>
+                    <option value="color-dodge">Dodge</option>
+                    <option value="color-burn">Burn</option>
+                    <option value="hard-light">Hard Light</option>
+                    <option value="soft-light">Soft Light</option>
+                    <option value="difference">Difference</option>
+                    <option value="exclusion">Exclusion</option>
+                    <option value="hue">Hue</option>
+                    <option value="saturation">Saturation</option>
+                    <option value="color">Color</option>
+                    <option value="luminosity">Luminosity</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- History / Zoom -->
+        <div class="tool-group">
+            <button onclick="undo()"          title="Undo (Ctrl+Z)">↩️</button>
+            <button onclick="redo()"          title="Redo (Ctrl+Y)">↪️</button>
+            <button onclick="zoomCanvas(1.2)" title="Zoom In">🔍</button>
+            <button onclick="zoomCanvas(0.8)" title="Zoom Out">🔎</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Grid / Actions -->
+        <div class="tool-group">
+            <button id="btn-grid" onclick="toggleGrid()" class="btn-neutral" title="Toggle Grid (G)">🏁 Grid</button>
+            <select id="grid-size" class="tool-select" title="Grid cell size"
+                onchange="gridSize = parseInt(this.value); needsRedraw = true;">
+                <option value="5">5px</option>
+                <option value="10">10px</option>
+                <option value="20" selected>20px</option>
+                <option value="40">40px</option>
+                <option value="80">80px</option>
+                <option value="100">100px</option>
+            </select>
+            <button onclick="openFilterModal()" class="btn-neutral" title="Filters">🎛️ Filters</button>
+            <button onclick="exitMode()"        class="btn-neutral" title="Exit Mode">❌ Exit</button>
+            <button onclick="clr()"             class="btn-danger"  title="Clear Canvas">🗑️ Clear</button>
+            <button onclick="openSaveModal()"   class="btn-success" title="Save as PNG">💾 Save</button>
+        </div>
+
+    </div><!-- /#toolbar -->
+
+    <!-- ── SUB-TOOLBARS ── -->
+    <!-- Free/Brush sub-toolbar -->
+    <div id="freeSubToolbar">
+        <span class="sub-label">Brush Type:</span>
+        <button onclick="changeFreeMode('pen')"    id="sub-pen"    class="active">🖋️ Pen</button>
+        <button onclick="changeFreeMode('brush')"  id="sub-brush">🖌️ Brush</button>
+        <button onclick="changeFreeMode('spray')"  id="sub-spray">💨 Spray</button>
+    </div>
+
+    <!-- Text sub-toolbar -->
+    <div id="textSubToolbar" style="display:none;">
+        <span class="sub-label">Text:</span>
+        <select id="font-family" class="tool-select">
+            <option value="Arial">Arial</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Verdana">Verdana</option>
+            <option value="Courier New">Courier New</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Impact">Impact</option>
+            <option value="Comic Sans MS">Comic Sans</option>
+        </select>
+        <div class="slider-group">
+            <label>Size</label>
+            <input type="range" id="font-size" min="8" max="200" value="32"
+                oninput="document.getElementById('fontSizeVal').innerText = this.value + 'px'">
+            <span id="fontSizeVal" class="val-badge">32px</span>
+        </div>
+        <button id="btn-bold"   onclick="toggleFontStyle('bold')"   title="Bold">𝐁 Bold</button>
+        <button id="btn-italic" onclick="toggleFontStyle('italic')" title="Italic">𝐼 Italic</button>
+        <span class="sub-label" style="font-size:10px; color:#94a3b8;">Click canvas to place · Type · Enter to commit · Esc to cancel</span>
+    </div>
+
+    <!-- Selection sub-toolbar -->
+    <div id="selectSubToolbar" style="display:none;">
+        <span class="sub-label">Selection:</span>
+        <button onclick="cropToSelection()"  title="Crop to selection">✂️ Crop</button>
+        <button onclick="copySelection()"    title="Copy selection">📋 Copy</button>
+        <button onclick="clearSelection()"   title="Clear selection">🗑️ Clear</button>
+        <button onclick="deselect()"         title="Deselect (Esc)">✖️ Deselect</button>
+    </div>
+
+    <!-- ── WORKSPACE (canvas + panels) ── -->
+    <div id="workspace">
+
+        <!-- Left: Navigator + Layers -->
+        <aside id="left-panel">
+
+            <!-- Navigator -->
+            <div class="panel-section" id="navigator-panel">
+                <div class="panel-header">🗺️ Navigator</div>
+                <div class="mini-preview-wrap">
+                    <canvas id="mini-preview-canvas"></canvas>
+                    <div id="nav-viewport"></div>
+                </div>
+            </div>
+
+            <!-- Layers -->
+            <div class="panel-section" id="layers-panel">
+                <div class="panel-header">
+                    🗂️ Layers
+                    <span id="active-layer-display" class="active-layer-tag">Background</span>
+                </div>
+                <div class="layer-actions">
+                    <button onclick="addLayer()"       title="New Layer">＋</button>
+                    <button onclick="duplicateLayer()" title="Duplicate Layer">⧉</button>
+                    <button onclick="mergeDown()"      title="Merge Down">⬇</button>
+                    <button onclick="deleteLayer()"    title="Delete Layer" class="btn-danger-sm">🗑</button>
+                </div>
+                <div id="layer-list"></div>
+                <div class="layer-opacity-row">
+                    <label class="layer-opacity-label">Opacity</label>
+                    <input type="range" id="layer-opacity" min="1" max="100" value="100"
+                        oninput="
+                            const v = parseInt(this.value)/100;
+                            if(layers[activeLayerIdx]) { layers[activeLayerIdx].opacity = v; needsRedraw = true; renderLayerList(); }
+                            document.getElementById('layerOpacityVal').innerText = this.value + '%';
+                        ">
+                    <span id="layerOpacityVal" class="val-badge">100%</span>
+                </div>
+            </div>
+
+            <!-- Swatches -->
+            <div class="panel-section" id="swatches-panel">
+                <div class="panel-header">🎨 Swatches</div>
+                <div class="swatch-palette-row">
+                    <button onclick="loadPalette('material')" class="swatch-palette-btn" title="Material">Material</button>
+                    <button onclick="loadPalette('pastel')"   class="swatch-palette-btn" title="Pastel">Pastel</button>
+                    <button onclick="loadPalette('neon')"     class="swatch-palette-btn" title="Neon">Neon</button>
+                    <button onclick="loadPalette('earth')"    class="swatch-palette-btn" title="Earth">Earth</button>
+                </div>
+                <div id="swatch-grid"></div>
+                <button onclick="addSwatch()" class="swatch-add-btn" title="Add current color to swatches">＋ Add Color</button>
+            </div>
+
+        </aside>
+
+        <!-- Canvas -->
+        <main id="canvas-container">
+            <canvas id="canvas" width="800" height="600"></canvas>
+            <!-- Text cursor overlay -->
+            <div id="text-cursor" style="display:none;"></div>
+        </main>
+
+    </div><!-- /#workspace -->
+
+    <!-- ── STATUS BAR ── -->
+    <footer id="status">
+        <div class="status-item">Tool: <strong id="current-tool-display">Free (pen)</strong></div>
+        <div class="status-sep">|</div>
+        <div class="status-item">Zoom: <strong id="zoom-level">100%</strong></div>
+        <div class="status-sep">|</div>
+        <div class="status-item">Pos: <strong id="mouse-pos">0, 0</strong></div>
+        <div class="hint">Shift+Drag to pan · Scroll to zoom · Dbl-click to reset</div>
+    </footer>
+
+    <!-- ── SAVE MODAL ── -->
+    <div id="save-modal-overlay" class="modal-overlay" style="display:none;">
+        <div class="modal">
+            <h3 class="modal-title">💾 Export Image</h3>
+
+            <div class="modal-section">
+                <label class="modal-label">File Format</label>
+                <div class="format-grid">
+                    <label class="format-option">
+                        <input type="radio" name="save-format" value="png" checked>
+                        <span class="format-card">
+                            <strong>PNG</strong>
+                            <small>Lossless · Supports transparency</small>
+                        </span>
+                    </label>
+                    <label class="format-option">
+                        <input type="radio" name="save-format" value="jpeg">
+                        <span class="format-card">
+                            <strong>JPG</strong>
+                            <small>Smaller file · No transparency</small>
+                        </span>
+                    </label>
+                    <label class="format-option">
+                        <input type="radio" name="save-format" value="webp">
+                        <span class="format-card">
+                            <strong>WebP</strong>
+                            <small>Best compression · Modern browsers</small>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-section" id="quality-section" style="display:none;">
+                <label class="modal-label">Quality <span id="quality-val">90%</span></label>
+                <input type="range" id="save-quality" min="10" max="100" value="90"
+                    oninput="document.getElementById('quality-val').textContent = this.value + '%'">
+            </div>
+
+            <div class="modal-section">
+                <label class="modal-label">Background</label>
+                <div class="bg-options">
+                    <label class="bg-option">
+                        <input type="radio" name="save-bg" value="white" checked>
+                        <span class="bg-card">
+                            <span class="bg-preview bg-white"></span>
+                            <strong>White</strong>
+                        </span>
+                    </label>
+                    <label class="bg-option">
+                        <input type="radio" name="save-bg" value="black">
+                        <span class="bg-card">
+                            <span class="bg-preview bg-black"></span>
+                            <strong>Black</strong>
+                        </span>
+                    </label>
+                    <label class="bg-option" id="transparent-option">
+                        <input type="radio" name="save-bg" value="transparent">
+                        <span class="bg-card">
+                            <span class="bg-preview bg-transparent"></span>
+                            <strong>Transparent</strong>
+                        </span>
+                    </label>
+                </div>
+                <p id="transparency-note" class="modal-note" style="display:none;">
+                    ⚠️ JPG does not support transparency — background will be white.
+                </p>
+            </div>
+
+            <div class="modal-section">
+                <label class="modal-label">File Name</label>
+                <input type="text" id="save-filename" class="modal-input" value="drawing" placeholder="filename">
+            </div>
+
+            <div class="modal-actions">
+                <button class="modal-btn-cancel" onclick="closeSaveModal()">Cancel</button>
+                <button class="modal-btn-save"   onclick="doSave()">⬇️ Download</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── FILTER MODAL ── -->
+    <div id="filter-modal-overlay" class="modal-overlay" style="display:none;">
+        <div class="modal">
+            <h3 class="modal-title">🎛️ Filters &amp; Transforms</h3>
+
+            <div class="modal-section">
+                <label class="modal-label">Color Adjustments</label>
+                <div class="filter-grid">
+                    <button onclick="applyFilter('grayscale')"   class="filter-btn">⬜ Grayscale</button>
+                    <button onclick="applyFilter('sepia')"       class="filter-btn">🟤 Sepia</button>
+                    <button onclick="applyFilter('invert')"      class="filter-btn">🔄 Invert</button>
+                    <button onclick="applyFilter('brighten')"    class="filter-btn">☀️ Brighten</button>
+                    <button onclick="applyFilter('darken')"      class="filter-btn">🌑 Darken</button>
+                    <button onclick="applyFilter('saturate')"    class="filter-btn">🌈 Saturate</button>
+                    <button onclick="applyFilter('desaturate')"  class="filter-btn">🩶 Desaturate</button>
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <label class="modal-label">Convolution Filters</label>
+                <div class="filter-grid">
+                    <button onclick="applyFilter('blur')"        class="filter-btn">💧 Blur</button>
+                    <button onclick="applyFilter('sharpen')"     class="filter-btn">🔪 Sharpen</button>
+                    <button onclick="applyFilter('emboss')"      class="filter-btn">🪨 Emboss</button>
+                    <button onclick="applyFilter('edgeDetect')"  class="filter-btn">📐 Edge Detect</button>
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <label class="modal-label">Transform</label>
+                <div class="filter-grid">
+                    <button onclick="applyFilter('flipH')"       class="filter-btn">↔️ Flip H</button>
+                    <button onclick="applyFilter('flipV')"       class="filter-btn">↕️ Flip V</button>
+                    <button onclick="applyFilter('rotate90')"    class="filter-btn">🔁 Rotate 90°</button>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="modal-btn-cancel" onclick="closeFilterModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── RESTORE SESSION TOAST ── -->
+    <div id="restore-toast">
+        <span class="restore-icon">🖌️</span>
+        <div class="restore-text">
+            <strong>Previous session found</strong>
+            <span>Restore your last drawing?</span>
+        </div>
+        <button id="restore-btn-yes" class="restore-yes">Restore</button>
+        <button id="restore-btn-no"  class="restore-no">New canvas</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
