@@ -1113,47 +1113,225 @@ function getEffectiveOpacity(pressure) {
 }
 
 // ── TOUCH SUPPORT ─────────────────────────────────────────────────────────
+// NOTE: MouseEvent offsetX/offsetY are read-only — we cannot fake them via
+// Object.assign. Instead we convert touch clientX/Y to canvas-space directly
+// and call the same drawing logic the mouse handlers use.
+
 let touchStartDist = 0, touchStartScale = 1;
+let touchPanStart  = {x:0, y:0};
+
+/** Convert a Touch object's clientX/Y into canvas-element offsetX/offsetY */
+function touchOffset(t) {
+    const rect = canvas.getBoundingClientRect();
+    return { offsetX: t.clientX - rect.left, offsetY: t.clientY - rect.top };
+}
+
+/** Convert canvas offsetX/offsetY into logical drawing coordinates */
+function offsetToPos(ox, oy) {
+    return { x: (ox - offsetX) / scale, y: (oy - offsetY) / scale };
+}
 
 canvas.addEventListener('touchstart', e => {
     e.preventDefault();
+
+    // ── Pinch-to-zoom (2 fingers) ──
     if (e.touches.length === 2) {
-        touchStartDist  = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+        touchStartDist  = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+        );
         touchStartScale = scale;
-        panning = false; drawing = false; return;
+        panning = false; drawing = false;
+        return;
     }
-    if (e.touches.length === 1) {
-        const t   = e.touches[0];
-        const rect= canvas.getBoundingClientRect();
-        const me  = { offsetX: t.clientX-rect.left, offsetY: t.clientY-rect.top, button:0, shiftKey:false, pressure: t.force||1 };
-        canvas.dispatchEvent(Object.assign(new MouseEvent('mousedown'), me));
+
+    if (e.touches.length !== 1) return;
+    const t  = e.touches[0];
+    const off = touchOffset(t);
+    const pos = offsetToPos(off.offsetX, off.offsetY);
+    const pressure = t.force > 0 ? t.force : 1;
+
+    startX = pos.x; startY = pos.y; lastX = startX; lastY = startY;
+
+    // Bézier state machine
+    if (tool === 'bezier') {
+        if (bezierState === 0) {
+            bzStart = {...pos}; bezierState = 1;
+        } else if (bezierState === 1) {
+            bzEnd = {...pos};
+            const mx = (bzStart.x + bzEnd.x) / 2, my = (bzStart.y + bzEnd.y) / 2;
+            bzCtrl = {x:mx, y:my}; bzCtrl2 = {x:mx, y:my};
+            bezierState = 2;
+        } else if (bezierState === 4) {
+            bzDragTarget = bzHitTest(pos) || null;
+        }
+        needsRedraw = true; return;
     }
+
+    if (tool === 'text') {
+        if (textState) commitText();
+        startTextInput(pos.x, pos.y); return;
+    }
+
+    if (tool === 'eyedropper') { pickColor(pos.x, pos.y); return; }
+
+    if (tool === 'select') {
+        selStart = {...pos}; selRect = {x:pos.x, y:pos.y, w:0, h:0};
+        hasSelection = false; selDrawing = true; return;
+    }
+
+    drawing = true;
+
+    if (tool === 'paint') {
+        floodFill(Math.floor(startX), Math.floor(startY)); drawing = false; return;
+    }
+
+    if (tool === 'free') {
+        strokeCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+        strokeCtx.globalAlpha = 1; strokeCtx.globalCompositeOperation = 'source-over';
+        strokeCtx.strokeStyle = color1.value; strokeCtx.fillStyle = color1.value;
+        strokeCtx.lineWidth = (freeMode === 'eraser')
+            ? getEffectiveBrushSize(pressure) * 3
+            : getEffectiveBrushSize(pressure);
+        strokeCtx.lineCap = 'round'; strokeCtx.lineJoin = 'round';
+        strokeCtx.beginPath(); strokeCtx.moveTo(startX, startY);
+    } else {
+        const offctx = getOffctx();
+        offctx.globalAlpha = getOpacity(); offctx.globalCompositeOperation = blendMode;
+        offctx.strokeStyle = color1.value;
+        offctx.fillStyle   = buildFillStyle(offctx, startX, startY, startX+1, startY+1);
+        offctx.lineWidth   = getBrushSize();
+    }
+    needsRedraw = true;
 }, {passive:false});
 
 canvas.addEventListener('touchmove', e => {
     e.preventDefault();
+
+    // ── Pinch-to-zoom (2 fingers) ──
     if (e.touches.length === 2) {
-        const dist  = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-        const newScale = Math.max(.05, Math.min(20, touchStartScale * dist / touchStartDist));
-        const mx  = (e.touches[0].clientX+e.touches[1].clientX)/2 - canvas.getBoundingClientRect().left;
-        const my  = (e.touches[0].clientY+e.touches[1].clientY)/2 - canvas.getBoundingClientRect().top;
-        const wx  = (mx-offsetX)/scale, wy = (my-offsetY)/scale;
-        scale     = newScale;
-        offsetX   = mx-wx*scale;
-        offsetY   = my-wy*scale;
-        clampOffset(); needsRedraw=true; return;
+        const dist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+        );
+        const newScale = Math.max(0.05, Math.min(20, touchStartScale * dist / touchStartDist));
+        const rect = canvas.getBoundingClientRect();
+        const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+        const my = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+        const wx = (mx - offsetX) / scale, wy = (my - offsetY) / scale;
+        scale   = newScale;
+        offsetX = mx - wx * scale;
+        offsetY = my - wy * scale;
+        clampOffset(); needsRedraw = true; return;
     }
-    if (e.touches.length === 1) {
-        const t   = e.touches[0];
-        const rect= canvas.getBoundingClientRect();
-        const me  = { offsetX: t.clientX-rect.left, offsetY: t.clientY-rect.top, pressure: t.force||1 };
-        canvas.dispatchEvent(Object.assign(new MouseEvent('mousemove'), me));
+
+    if (e.touches.length !== 1) return;
+    const t   = e.touches[0];
+    const off = touchOffset(t);
+    const pos = offsetToPos(off.offsetX, off.offsetY);
+    const pressure = t.force > 0 ? t.force : 1;
+
+    if (mousePosDisplay) mousePosDisplay.textContent = `${Math.floor(pos.x)}, ${Math.floor(pos.y)}`;
+
+    // Bézier live tracking
+    if (tool === 'bezier') {
+        bzMousePos = {...pos};
+        if (bezierState === 1)                   { needsRedraw = true; return; }
+        if (bezierState === 2)                   { bzCtrl  = {...pos}; needsRedraw = true; return; }
+        if (bezierState === 3)                   { bzCtrl2 = {...pos}; needsRedraw = true; return; }
+        if (bezierState === 4 && bzDragTarget)   {
+            if (bzDragTarget==='start') bzStart = {...pos};
+            else if (bzDragTarget==='end')  bzEnd   = {...pos};
+            else if (bzDragTarget==='cp1')  bzCtrl  = {...pos};
+            else if (bzDragTarget==='cp2')  bzCtrl2 = {...pos};
+            needsRedraw = true; return;
+        }
+        needsRedraw = true; return;
     }
+
+    // Selection
+    if (tool === 'select' && selDrawing) {
+        selRect = {x:selStart.x, y:selStart.y, w:pos.x-selStart.x, h:pos.y-selStart.y};
+        needsRedraw = true; return;
+    }
+
+    if (!drawing || tool === 'paint' || tool === 'eyedropper') return;
+    const cx = pos.x, cy = pos.y;
+
+    if (tool === 'free') {
+        const bSize = getEffectiveBrushSize(pressure);
+        if (freeMode === 'spray') {
+            const radius = bSize * 3, density = 10 + bSize * 2;
+            strokeCtx.fillStyle = color1.value;
+            for (let i = 0; i < density; i++) {
+                const a = Math.random() * 2 * Math.PI, r = Math.sqrt(Math.random()) * radius;
+                strokeCtx.fillRect(cx + Math.cos(a)*r, cy + Math.sin(a)*r, Math.random()+.5, Math.random()+.5);
+            }
+        } else if (freeMode === 'brush') {
+            strokeCtx.strokeStyle = color1.value;
+            strokeCtx.lineWidth   = bSize;
+            strokeCtx.shadowBlur  = bSize * 0.8;
+            strokeCtx.shadowColor = color1.value;
+            strokeCtx.lineTo(cx, cy); strokeCtx.stroke();
+            strokeCtx.shadowBlur = 0;
+            strokeCtx.beginPath(); strokeCtx.moveTo(cx, cy);
+        } else {
+            strokeCtx.lineWidth = bSize;
+            strokeCtx.lineTo(cx, cy); strokeCtx.stroke();
+            strokeCtx.beginPath(); strokeCtx.moveTo(cx, cy);
+        }
+    } else {
+        pendingPreview = {tool, x1:startX, y1:startY, x2:cx, y2:cy, w:cx-startX, h:cy-startY,
+            strokeStyle: color1.value,
+            fillStyle:   buildFillStyle(getOffctx(), startX, startY, cx, cy),
+            alpha:       getOpacity(), lineWidth: getBrushSize()};
+    }
+    lastX = cx; lastY = cy; needsRedraw = true;
 }, {passive:false});
 
 canvas.addEventListener('touchend', e => {
     e.preventDefault();
-    if (e.touches.length === 0) canvas.dispatchEvent(new MouseEvent('mouseup'));
+
+    // Bézier: advance state
+    if (tool === 'bezier') {
+        if (bezierState === 2) { bezierState = 3; bzCtrl2 = {...bzCtrl}; }
+        else if (bezierState === 3) { bezierState = 4; }
+        bzDragTarget = null; needsRedraw = true; return;
+    }
+
+    // Selection commit
+    if (tool === 'select' && selDrawing) {
+        selDrawing = false;
+        if (Math.abs(selRect.w) > 4 && Math.abs(selRect.h) > 4) {
+            hasSelection = true;
+            document.getElementById('selectSubToolbar').style.display = 'flex';
+        } else { selRect = null; }
+        needsRedraw = true; return;
+    }
+
+    // Commit stroke / shape
+    if (drawing) {
+        const offctx = getOffctx();
+        if (tool === 'free') {
+            offctx.globalAlpha = getOpacity();
+            offctx.globalCompositeOperation = freeMode === 'eraser' ? 'destination-out' : blendMode;
+            offctx.drawImage(strokeCanvas, 0, 0);
+            offctx.globalAlpha = 1; offctx.globalCompositeOperation = 'source-over';
+            strokeCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+        } else if (pendingPreview) {
+            const p = pendingPreview;
+            offctx.globalCompositeOperation = blendMode;
+            offctx.strokeStyle = p.strokeStyle;
+            offctx.fillStyle   = buildFillStyle(offctx, p.x1, p.y1, p.x2, p.y2);
+            offctx.globalAlpha = p.alpha; offctx.lineWidth = p.lineWidth;
+            drawShape(offctx, p.tool, p.x1, p.y1, p.x2, p.y2, p.w, p.h);
+            offctx.globalAlpha = 1; offctx.globalCompositeOperation = 'source-over';
+        }
+        saveSnapshot();
+    }
+    drawing = false; panning = false; pendingPreview = null;
+    needsRedraw = true;
+    renderLayerList();
 }, {passive:false});
 
 // ── UI TOOLBAR ────────────────────────────────────────────────────────────
