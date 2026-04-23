@@ -29,6 +29,11 @@ let tolerance    = 40;
 let blendMode    = 'source-over';
 let usePressure  = false;
 
+// Canvas dimensions (logical drawing space)
+let canvasWidth  = 2000;
+let canvasHeight = 2000;
+let canvasPreset = 'Custom';
+
 // Viewport
 let scale   = 1, offsetX = 0, offsetY = 0;
 let panning = false, panStart = {x:0,y:0};
@@ -59,7 +64,7 @@ let layerCounter   = 0;
 
 function createLayerCanvas() {
     const c = document.createElement('canvas');
-    c.width  = 2000; c.height = 2000;
+    c.width  = canvasWidth; c.height = canvasHeight;
     return c;
 }
 
@@ -194,7 +199,7 @@ async function applySnapshot(snapshot) {
         img.onload = () => {
             const c   = createLayerCanvas();
             const lctx= c.getContext('2d', {willReadFrequently:true});
-            lctx.clearRect(0, 0, 2000, 2000);
+            lctx.clearRect(0, 0, canvasWidth, canvasHeight);
             lctx.drawImage(img, 0, 0);
             URL.revokeObjectURL(url);
             const m = snapshot.layerMeta[i];
@@ -345,7 +350,7 @@ function redraw() {
     ctx.fillStyle = "#fff";
     ctx.shadowBlur  = 10/scale;
     ctx.shadowColor = "rgba(0,0,0,.3)";
-    ctx.fillRect(0, 0, 2000, 2000);
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     ctx.restore();
 
     // Draw all visible layers bottom-to-top
@@ -401,11 +406,11 @@ function drawGridOverlay(tc, s) {
     tc.strokeStyle = 'rgba(100,116,139,.35)';
     tc.lineWidth   = Math.max(.4, .8/s);
     tc.setLineDash([]);
-    for (let x=0; x<=2000; x+=gridSize) {
-        tc.beginPath(); tc.moveTo(x,0); tc.lineTo(x,2000); tc.stroke();
+    for (let x=0; x<=canvasWidth; x+=gridSize) {
+        tc.beginPath(); tc.moveTo(x,0); tc.lineTo(x,canvasHeight); tc.stroke();
     }
-    for (let y=0; y<=2000; y+=gridSize) {
-        tc.beginPath(); tc.moveTo(0,y); tc.lineTo(2000,y); tc.stroke();
+    for (let y=0; y<=canvasHeight; y+=gridSize) {
+        tc.beginPath(); tc.moveTo(0,y); tc.lineTo(canvasWidth,y); tc.stroke();
     }
     tc.restore();
 }
@@ -420,8 +425,8 @@ function updateNavigator() {
     miniCanvas.width  = mw;
     miniCanvas.height = mh;
 
-    const ratio = Math.min(mw/2000, mh/2000);
-    const nw    = 2000*ratio, nh = 2000*ratio;
+    const ratio = Math.min(mw/canvasWidth, mh/canvasHeight);
+    const nw    = canvasWidth*ratio, nh = canvasHeight*ratio;
     const nx    = (mw-nw)/2,  ny = (mh-nh)/2;
 
     mc.clearRect(0,0,mw,mh);
@@ -429,24 +434,29 @@ function updateNavigator() {
     for (const L of layers) {
         if (!L.visible) continue;
         mc.save(); mc.globalAlpha = L.opacity;
-        mc.drawImage(L.canvas, 0,0,2000,2000, nx,ny,nw,nh);
+        mc.drawImage(L.canvas, 0,0,canvasWidth,canvasHeight, nx,ny,nw,nh);
         mc.restore();
     }
 
-    // Viewport rect
+    // Viewport rect — positioned RELATIVE inside mini-preview-wrap
     const vp   = document.getElementById('nav-viewport');
     if (!vp) return;
     const dpr  = window.devicePixelRatio || 1;
     const cw   = canvas.width/dpr, ch = canvas.height/dpr;
+    // How much of the logical canvas is visible in screen pixels
     const vx   = nx + (-offsetX/scale) * ratio;
     const vy   = ny + (-offsetY/scale) * ratio;
     const vw   = (cw/scale) * ratio;
     const vh   = (ch/scale) * ratio;
-    const navRect = miniCanvas.getBoundingClientRect();
-    vp.style.left   = (navRect.left + vx) + 'px';
-    vp.style.top    = (navRect.top  + vy) + 'px';
-    vp.style.width  = vw + 'px';
-    vp.style.height = vh + 'px';
+    // Clamp to minimap bounds
+    const clampedX = Math.max(nx, Math.min(nx+nw, vx));
+    const clampedY = Math.max(ny, Math.min(ny+nh, vy));
+    const clampedW = Math.min(vw, nx+nw-clampedX);
+    const clampedH = Math.min(vh, ny+nh-clampedY);
+    vp.style.left   = clampedX + 'px';
+    vp.style.top    = clampedY + 'px';
+    vp.style.width  = Math.max(4, clampedW) + 'px';
+    vp.style.height = Math.max(4, clampedH) + 'px';
 }
 
 // Navigator click-to-pan
@@ -456,8 +466,8 @@ document.addEventListener('DOMContentLoaded', () => {
     mini.addEventListener('click', e => {
         const rect  = mini.getBoundingClientRect();
         const mw    = mini.offsetWidth, mh = mini.offsetHeight;
-        const ratio = Math.min(mw/2000, mh/2000);
-        const nw    = 2000*ratio, nh = 2000*ratio;
+        const ratio = Math.min(mw/canvasWidth, mh/canvasHeight);
+        const nw    = canvasWidth*ratio, nh = canvasHeight*ratio;
         const nx    = (mw-nw)/2,  ny = (mh-nh)/2;
         const wx    = (e.clientX - rect.left - nx) / ratio;
         const wy    = (e.clientY - rect.top  - ny) / ratio;
@@ -474,8 +484,8 @@ document.addEventListener('DOMContentLoaded', () => {
 function clampOffset() {
     const dpr  = window.devicePixelRatio||1;
     const vw   = canvas.width/dpr, vh = canvas.height/dpr;
-    const minX = Math.min(vw - 2000*scale, 0);
-    const minY = Math.min(vh - 2000*scale, 0);
+    const minX = Math.min(vw - canvasWidth*scale, 0);
+    const minY = Math.min(vh - canvasHeight*scale, 0);
     offsetX    = Math.min(Math.max(offsetX, minX), 0);
     offsetY    = Math.min(Math.max(offsetY, minY), 0);
 }
@@ -854,7 +864,7 @@ function cropToSelection() {
         const tmp = createLayerCanvas();
         const tc  = tmp.getContext('2d', {willReadFrequently:true});
         tc.drawImage(L.canvas, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
-        L.ctx.clearRect(0, 0, 2000, 2000);
+        L.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
         L.ctx.drawImage(tmp, 0, 0);
     });
     deselect(); saveSnapshot(); needsRedraw = true;
@@ -885,7 +895,7 @@ function clearSelection() {
 // ── EYEDROPPER ────────────────────────────────────────────────────────────
 function pickColor(x, y) {
     x = Math.floor(x); y = Math.floor(y);
-    if (x<0||x>=2000||y<0||y>=2000) return;
+    if (x<0||x>=canvasWidth||y<0||y>=canvasHeight) return;
     // Read from composite (all visible layers)
     const tmp = document.createElement('canvas');
     tmp.width=1; tmp.height=1;
@@ -909,28 +919,29 @@ function matchColor(data, i, target) {
 
 function floodFill(sx, sy) {
     sx=Math.floor(sx); sy=Math.floor(sy);
-    if (sx<0||sx>=2000||sy<0||sy>=2000) return;
+    if (sx<0||sx>=canvasWidth||sy<0||sy>=canvasHeight) return;
     const offctx = getOffctx();
+    const W=canvasWidth, H=canvasHeight;
     // Composite read canvas
-    const tmp=document.createElement('canvas'); tmp.width=2000; tmp.height=2000;
+    const tmp=document.createElement('canvas'); tmp.width=W; tmp.height=H;
     const tc=tmp.getContext('2d');
-    tc.fillStyle='#fff'; tc.fillRect(0,0,2000,2000); tc.drawImage(getOffscreen(),0,0);
-    const readData  = tc.getImageData(0,0,2000,2000).data;
-    const imageData = offctx.getImageData(0,0,2000,2000);
+    tc.fillStyle='#fff'; tc.fillRect(0,0,W,H); tc.drawImage(getOffscreen(),0,0);
+    const readData  = tc.getImageData(0,0,W,H).data;
+    const imageData = offctx.getImageData(0,0,W,H);
     const writeData = imageData.data;
     const c1=hexToRGB(color1.value), c2=hexToRGB(color2.value), op=getOpacity();
-    const si=(sy*2000+sx)*4;
+    const si=(sy*W+sx)*4;
     const target=[readData[si],readData[si+1],readData[si+2],readData[si+3]];
     const fillRGB=hexToRGB(color1.value);
     if(target[0]===fillRGB[0]&&target[1]===fillRGB[1]&&target[2]===fillRGB[2]) return;
-    const stack=[[sx,sy]], visited=new Uint8Array(2000*2000), pixels=[];
+    const stack=[[sx,sy]], visited=new Uint8Array(W*H), pixels=[];
     while(stack.length){
         let [x,y]=stack.pop();
-        while(y>=0&&matchColor(readData,(y*2000+x)*4,target)&&!visited[y*2000+x]) y--;
+        while(y>=0&&matchColor(readData,(y*W+x)*4,target)&&!visited[y*W+x]) y--;
         y++;
         let rL=false,rR=false;
-        while(y<2000&&matchColor(readData,(y*2000+x)*4,target)&&!visited[y*2000+x]){
-            const idx=y*2000+x; visited[idx]=1;
+        while(y<H&&matchColor(readData,(y*W+x)*4,target)&&!visited[y*W+x]){
+            const idx=y*W+x; visited[idx]=1;
             if(!useGradient){
                 const p=idx*4,a=op;
                 writeData[p]   =Math.round(c1[0]*a+writeData[p]  *(1-a));
@@ -939,11 +950,11 @@ function floodFill(sx, sy) {
                 writeData[p+3] =Math.round(255*a+writeData[p+3]*(1-a));
             } else pixels.push({x,y});
             if(x>0){const li=idx-1;if(!rL&&matchColor(readData,li*4,target)&&!visited[li]){stack.push([x-1,y]);rL=true;}else if(rL&&(!matchColor(readData,li*4,target)||visited[li]))rL=false;}
-            if(x<1999){const ri=idx+1;if(!rR&&matchColor(readData,ri*4,target)&&!visited[ri]){stack.push([x+1,y]);rR=true;}else if(rR&&(!matchColor(readData,ri*4,target)||visited[ri]))rR=false;}
+            if(x<W-1){const ri=idx+1;if(!rR&&matchColor(readData,ri*4,target)&&!visited[ri]){stack.push([x+1,y]);rR=true;}else if(rR&&(!matchColor(readData,ri*4,target)||visited[ri]))rR=false;}
             y++;
         }
     }
-    if(useGradient&&pixels.length) applyGradientToPixels(writeData,pixels,2000,c1,c2,op);
+    if(useGradient&&pixels.length) applyGradientToPixels(writeData,pixels,W,c1,c2,op);
     offctx.putImageData(imageData,0,0);
     saveSnapshot(); needsRedraw=true;
 }
@@ -975,7 +986,7 @@ function applyGradientToPixels(data, pixels, width, c1, c2, op) {
 // ── FILTERS ───────────────────────────────────────────────────────────────
 function applyFilter(type) {
     const offctx = getOffctx();
-    const w=2000, h=2000;
+    const w=canvasWidth, h=canvasHeight;
 
     const simpleConvolution = (kernel, divisor) => {
         const src = offctx.getImageData(0,0,w,h);
@@ -1034,16 +1045,16 @@ function applyFilter(type) {
         offctx.putImageData(id,0,0);
     } else if (type==='flipH') {
         const tmp=createLayerCanvas(); const tc=tmp.getContext('2d');
-        tc.translate(2000,0); tc.scale(-1,1); tc.drawImage(getOffscreen(),0,0);
-        offctx.clearRect(0,0,2000,2000); offctx.drawImage(tmp,0,0);
+        tc.translate(w,0); tc.scale(-1,1); tc.drawImage(getOffscreen(),0,0);
+        offctx.clearRect(0,0,w,h); offctx.drawImage(tmp,0,0);
     } else if (type==='flipV') {
         const tmp=createLayerCanvas(); const tc=tmp.getContext('2d');
-        tc.translate(0,2000); tc.scale(1,-1); tc.drawImage(getOffscreen(),0,0);
-        offctx.clearRect(0,0,2000,2000); offctx.drawImage(tmp,0,0);
+        tc.translate(0,h); tc.scale(1,-1); tc.drawImage(getOffscreen(),0,0);
+        offctx.clearRect(0,0,w,h); offctx.drawImage(tmp,0,0);
     } else if (type==='rotate90') {
         const tmp=createLayerCanvas(); const tc=tmp.getContext('2d');
-        tc.translate(2000,0); tc.rotate(Math.PI/2); tc.drawImage(getOffscreen(),0,0);
-        offctx.clearRect(0,0,2000,2000); offctx.drawImage(tmp,0,0);
+        tc.translate(w,0); tc.rotate(Math.PI/2); tc.drawImage(getOffscreen(),0,0);
+        offctx.clearRect(0,0,w,h); offctx.drawImage(tmp,0,0);
     }
     saveSnapshot(); needsRedraw=true; closeFilterModal();
 }
@@ -1218,7 +1229,7 @@ function toggleGrid() {
 }
 function clr() {
     if (!confirm('Clear active layer? (Ctrl+Z to undo)')) return;
-    getOffctx().clearRect(0,0,2000,2000); saveSnapshot(); needsRedraw=true;
+    getOffctx().clearRect(0,0,canvasWidth,canvasHeight); saveSnapshot(); needsRedraw=true;
 }
 function openSaveModal() { document.getElementById('save-modal-overlay').style.display='flex'; updateSaveModalUI(); }
 function closeSaveModal(){ document.getElementById('save-modal-overlay').style.display='none'; }
@@ -1241,10 +1252,17 @@ function doSave() {
     const bg =document.querySelector('input[name="save-bg"]:checked')?.value||'white';
     const q  =parseInt(document.getElementById('save-quality').value)/100;
     const fn =document.getElementById('save-filename').value.trim()||'drawing';
-    const sc =document.createElement('canvas'); sc.width=2000; sc.height=2000;
+    const sc =document.createElement('canvas');
+    sc.width=canvasWidth; sc.height=canvasHeight;
     const sctx=sc.getContext('2d');
-    if(bg!=='transparent'||fmt==='jpeg'){sctx.fillStyle=bg==='black'?'#000':'#fff';sctx.fillRect(0,0,2000,2000);}
+    // Only fill background if not transparent (or if format doesn't support transparency)
+    const isTransparent = bg==='transparent' && fmt!=='jpeg';
+    if (!isTransparent) {
+        sctx.fillStyle = bg==='black' ? '#000' : '#fff';
+        sctx.fillRect(0,0,canvasWidth,canvasHeight);
+    }
     layers.forEach(L=>{if(L.visible){sctx.globalAlpha=L.opacity;sctx.drawImage(L.canvas,0,0);}});
+    sctx.globalAlpha=1;
     const mimes={png:'image/png',jpeg:'image/jpeg',webp:'image/webp'};
     const ext=fmt==='jpeg'?'jpg':fmt;
     const link=document.createElement('a'); link.href=sc.toDataURL(mimes[fmt]||'image/png',q); link.download=`${fn}.${ext}`; link.click();
@@ -1253,6 +1271,35 @@ function doSave() {
 
 // ── EVENT LISTENERS ───────────────────────────────────────────────────────
 canvas.addEventListener('contextmenu', e=>e.preventDefault());
+
+// BUG FIX: Stop drawing when mouse leaves canvas or button released anywhere
+window.addEventListener('mouseup', e => {
+    if (!drawing && !panning) return;
+    // Simulate a mouseup on canvas to properly commit the stroke
+    if (drawing) {
+        const offctx=getOffctx();
+        if (tool==='free') {
+            offctx.globalAlpha=getOpacity();
+            offctx.globalCompositeOperation=freeMode==='eraser'?'destination-out':blendMode;
+            offctx.drawImage(strokeCanvas,0,0);
+            offctx.globalAlpha=1; offctx.globalCompositeOperation='source-over';
+            strokeCtx.clearRect(0,0,canvasWidth,canvasHeight);
+        } else if (pendingPreview) {
+            const p=pendingPreview;
+            offctx.globalCompositeOperation=blendMode;
+            offctx.strokeStyle=p.strokeStyle;
+            offctx.fillStyle=buildFillStyle(offctx,p.x1,p.y1,p.x2,p.y2);
+            offctx.globalAlpha=p.alpha; offctx.lineWidth=p.lineWidth;
+            drawShape(offctx,p.tool,p.x1,p.y1,p.x2,p.y2,p.w,p.h);
+            offctx.globalAlpha=1; offctx.globalCompositeOperation='source-over';
+        }
+        saveSnapshot();
+    }
+    drawing=false; panning=false; pendingPreview=null;
+    canvas.style.cursor=tool==='eyedropper'?'cell':'crosshair';
+    needsRedraw=true;
+    renderLayerList();
+});
 
 canvas.addEventListener('mousedown', e => {
     if (e.button===2||e.shiftKey) { panning=true; panStart={x:e.offsetX,y:e.offsetY}; canvas.style.cursor='grabbing'; return; }
@@ -1298,7 +1345,7 @@ canvas.addEventListener('mousedown', e => {
 
     if (tool==='free') {
         const pressure = e.pressure != null ? e.pressure : 1;
-        strokeCtx.clearRect(0,0,2000,2000);
+        strokeCtx.clearRect(0,0,canvasWidth,canvasHeight);
         strokeCtx.globalAlpha=1; strokeCtx.globalCompositeOperation='source-over';
         strokeCtx.strokeStyle=color1.value; strokeCtx.fillStyle=color1.value;
         strokeCtx.lineWidth=(freeMode==='eraser')?getEffectiveBrushSize(pressure)*3:getEffectiveBrushSize(pressure);
@@ -1389,10 +1436,10 @@ canvas.addEventListener('mouseup', e => {
     // Bézier: advance state on mouse-release after dragging
     if (tool==='bezier') {
         if (bezierState===2) {
-            bezierState=3; // CP1 set, now drag CP2
-            bzCtrl2={...bzCtrl}; // default CP2 to same spot
+            bezierState=3;
+            bzCtrl2={...bzCtrl};
         } else if (bezierState===3) {
-            bezierState=4; // both CPs set, enter fine-tune mode
+            bezierState=4;
         }
         bzDragTarget=null;
         needsRedraw=true; return;
@@ -1406,31 +1453,7 @@ canvas.addEventListener('mouseup', e => {
         } else { selRect=null; }
         needsRedraw=true; return;
     }
-
-    if (!drawing&&!panning) return;
-    if (drawing) {
-        const offctx=getOffctx();
-        if (tool==='free') {
-            offctx.globalAlpha=getOpacity();
-            offctx.globalCompositeOperation=freeMode==='eraser'?'destination-out':blendMode;
-            offctx.drawImage(strokeCanvas,0,0);
-            offctx.globalAlpha=1; offctx.globalCompositeOperation='source-over';
-            strokeCtx.clearRect(0,0,2000,2000);
-        } else if (pendingPreview) {
-            const p=pendingPreview;
-            offctx.globalCompositeOperation=blendMode;
-            offctx.strokeStyle=p.strokeStyle;
-            offctx.fillStyle=buildFillStyle(offctx,p.x1,p.y1,p.x2,p.y2);
-            offctx.globalAlpha=p.alpha; offctx.lineWidth=p.lineWidth;
-            drawShape(offctx,p.tool,p.x1,p.y1,p.x2,p.y2,p.w,p.h);
-            offctx.globalAlpha=1; offctx.globalCompositeOperation='source-over';
-        }
-        saveSnapshot();
-    }
-    drawing=false; panning=false; pendingPreview=null;
-    canvas.style.cursor=tool==='eyedropper'?'cell':'crosshair';
-    needsRedraw=true;
-    renderLayerList();
+    // Other mouseup handling is done by window mouseup listener
 });
 
 canvas.addEventListener('dblclick', e => {
@@ -1530,7 +1553,127 @@ document.addEventListener('DOMContentLoaded', () => {
         updateToolbar();
         renderSwatches();
         initDB();
+        updateCanvasSizeDisplay();
         needsRedraw=true;
-        console.log('🎨 Studio Paint Pro v3.0 — Ready');
+        console.log('🎨 Studio Paint Pro v4.0 — Ready');
     }, 50);
+});
+// ── CANVAS SIZE ───────────────────────────────────────────────────────────
+const CANVAS_PRESETS = {
+    'a4-portrait':  { w: 794,  h: 1123, label: 'A4 Portrait'  },
+    'a4-landscape': { w: 1123, h: 794,  label: 'A4 Landscape' },
+    'a5-portrait':  { w: 559,  h: 794,  label: 'A5 Portrait'  },
+    'a5-landscape': { w: 794,  h: 559,  label: 'A5 Landscape' },
+    'hd':           { w: 1280, h: 720,  label: 'HD 720p'      },
+    'fhd':          { w: 1920, h: 1080, label: 'Full HD 1080p' },
+    'square-sm':    { w: 1000, h: 1000, label: 'Square 1000'  },
+    'square-lg':    { w: 2000, h: 2000, label: 'Square 2000'  },
+};
+
+function openCanvasModal() {
+    document.getElementById('canvas-w-input').value = canvasWidth;
+    document.getElementById('canvas-h-input').value = canvasHeight;
+    // Highlight matching preset
+    document.querySelectorAll('.canvas-preset-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('canvas-modal-overlay').style.display = 'flex';
+}
+function closeCanvasModal() {
+    document.getElementById('canvas-modal-overlay').style.display = 'none';
+}
+
+function applyCanvasPreset(key) {
+    const p = CANVAS_PRESETS[key];
+    if (!p) return;
+    document.getElementById('canvas-w-input').value = p.w;
+    document.getElementById('canvas-h-input').value = p.h;
+    document.querySelectorAll('.canvas-preset-btn').forEach(b => b.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+}
+
+function applyCanvasCustom() {
+    const w = parseInt(document.getElementById('canvas-w-input').value);
+    const h = parseInt(document.getElementById('canvas-h-input').value);
+    if (!w || !h || w < 100 || h < 100 || w > 8000 || h > 8000) {
+        alert('Please enter valid dimensions between 100 and 8000 pixels.');
+        return;
+    }
+    if (!confirm(`Resize canvas to ${w} × ${h}px? This will clear all layers.`)) return;
+    resizeCanvas(w, h);
+    closeCanvasModal();
+}
+
+function resizeCanvas(w, h) {
+    canvasWidth  = w;
+    canvasHeight = h;
+
+    // Find preset label
+    canvasPreset = 'Custom';
+    for (const [key, p] of Object.entries(CANVAS_PRESETS)) {
+        if (p.w === w && p.h === h) { canvasPreset = p.label; break; }
+    }
+
+    // Recreate stroke canvas at new size
+    strokeCanvas.width  = w;
+    strokeCanvas.height = h;
+    strokeCtx.clearRect(0, 0, w, h);
+
+    // Reset layers — create fresh background layer
+    layers = [];
+    layerCounter = 0;
+    undoStack = [];
+    redoStack = [];
+    addLayer('Background');
+
+    // Reset view
+    scale = 1; offsetX = 0; offsetY = 0;
+    setupCanvasResolution();
+    updateCanvasSizeDisplay();
+    needsRedraw = true;
+}
+
+function updateCanvasSizeDisplay() {
+    const sizeEl   = document.getElementById('canvas-size-display');
+    const presetEl = document.getElementById('canvas-preset-display');
+    const statusEl = document.getElementById('status-canvas-size');
+    if (sizeEl)   sizeEl.textContent   = `${canvasWidth} × ${canvasHeight}`;
+    if (presetEl) presetEl.textContent = canvasPreset;
+    if (statusEl) statusEl.textContent = `${canvasWidth} × ${canvasHeight}`;
+}
+
+// Canvas modal close on overlay click / escape
+document.addEventListener('DOMContentLoaded', () => {
+    const overlay = document.getElementById('canvas-modal-overlay');
+    if (overlay) {
+        overlay.addEventListener('click', e => {
+            if (e.target === overlay) closeCanvasModal();
+        });
+    }
+});
+window.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        const cm = document.getElementById('canvas-modal-overlay');
+        if (cm && cm.style.display !== 'none') closeCanvasModal();
+    }
+});
+// ── MOBILE PANEL TOGGLE ────────────────────────────────────────────────────
+function togglePanel() {
+    const panel   = document.getElementById('left-panel');
+    const overlay = document.getElementById('panel-overlay');
+    const btn     = document.getElementById('panel-toggle-btn');
+    const isOpen  = panel.classList.contains('open');
+    panel.classList.toggle('open', !isOpen);
+    overlay.classList.toggle('visible', !isOpen);
+    if (btn) btn.classList.toggle('active', !isOpen);
+}
+
+// Close panel on resize to desktop
+window.addEventListener('resize', () => {
+    if (window.innerWidth > 640) {
+        const panel   = document.getElementById('left-panel');
+        const overlay = document.getElementById('panel-overlay');
+        const btn     = document.getElementById('panel-toggle-btn');
+        panel.classList.remove('open');
+        overlay.classList.remove('visible');
+        if (btn) btn.classList.remove('active');
+    }
 });
