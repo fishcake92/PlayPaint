@@ -3,47 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎨 Studio Paint Pro</title>
+    <title>Studio Paint Pro</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <header>
-        <h2>🎨 Studio Paint Pro <span id="autosave-indicator" class="autosave-indicator"></span></h2>
+        <div class="header-logo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            <span>Studio Paint Pro</span>
+        </div>
+        <span id="autosave-indicator" class="autosave-indicator"></span>
+        <div class="header-right">
+            <button id="panel-toggle-btn" onclick="togglePanel()" title="Toggle Layers Panel" aria-label="Toggle Panel">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="13" y="3" width="8" height="18" rx="1"/></svg>
+                Panels
+            </button>
+            <button onclick="openCanvasModal()" class="header-btn" title="Canvas Size">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                Canvas
+            </button>
+        </div>
     </header>
+    <!-- Mobile panel overlay -->
+    <div id="panel-overlay" onclick="togglePanel()"></div>
 
     <!-- ── MAIN TOOLBAR ── -->
     <div id="toolbar" role="toolbar" aria-label="Main Toolbar">
 
-        <!-- Drawing Tools -->
-        <div class="tool-group">
-            <button onclick="setTool('free')"       id="tool-free"       class="active" title="Freehand (F)">🖊️ Free</button>
-            <button onclick="setTool('rect')"        id="tool-rect"                      title="Rectangle (R)">⬛ Rect</button>
-            <button onclick="setTool('roundrect')"   id="tool-roundrect"                 title="Rounded Rect (Q)">▢ Round</button>
-            <button onclick="setTool('circle')"      id="tool-circle"                    title="Circle (C)">⚪ Circle</button>
-            <button onclick="setTool('ellipse')"     id="tool-ellipse"                   title="Ellipse (E)">🔵 Ellipse</button>
-            <button onclick="setTool('triangle')"    id="tool-triangle"                  title="Triangle (T)">🔺 Triangle</button>
-            <button onclick="setTool('diamond')"     id="tool-diamond"                   title="Diamond (D)">💎 Diamond</button>
-            <button onclick="setTool('star')"        id="tool-star"                      title="Star (U)">⭐ Star</button>
-            <button onclick="setTool('pentagon')"    id="tool-pentagon"                  title="Pentagon (N)">⬠ Pentagon</button>
-            <button onclick="setTool('hexagon')"     id="tool-hexagon"                   title="Hexagon (H)">⬡ Hexagon</button>
-            <button onclick="setTool('arrow')"       id="tool-arrow"                     title="Arrow (A)">➡️ Arrow</button>
-            <button onclick="setTool('line')"        id="tool-line"                      title="Line (L)">📏 Line</button>
-            <button onclick="setTool('bezier')"      id="tool-bezier"                    title="Bézier Curve (B)">〰️ Bézier</button>
-            <button onclick="setTool('select')"      id="tool-select"                    title="Marquee Select (S)">⬚ Select</button>
-            <button onclick="setTool('text')"        id="tool-text"                      title="Text Tool (W)">🔤 Text</button>
-            <button onclick="setTool('paint')"       id="tool-paint"                     title="Paint Bucket (P)">🪣 Paint</button>
-            <button onclick="setTool('eyedropper')"  id="tool-eyedropper"                title="Eyedropper (I)">💉 Pick</button>
-            <button onclick="changeFreeMode('eraser')" id="tool-eraser"                  title="Eraser (X)">🧽 Eraser</button>
+        <!-- Drawing Tools Group -->
+        <div class="tool-section">
+            <div class="tool-section-label">Draw</div>
+            <div class="tool-group">
+                <button onclick="setTool('free')" id="tool-free" class="active" title="Freehand (F)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                    Free
+                </button>
+                <button onclick="setTool('line')" id="tool-line" title="Line (L)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5"/></svg>
+                    Line
+                </button>
+                <button onclick="setTool('bezier')" id="tool-bezier" title="Bézier Curve (B)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 20c3-8 6-12 9-12s6 4 9-4"/></svg>
+                    Bézier
+                </button>
+                <button onclick="setTool('arrow')" id="tool-arrow" title="Arrow (A)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    Arrow
+                </button>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Shapes Group -->
+        <div class="tool-section">
+            <div class="tool-section-label">Shapes</div>
+            <div class="tool-group">
+                <button onclick="setTool('rect')" id="tool-rect" title="Rectangle (R)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="1"/></svg>
+                    Rect
+                </button>
+                <button onclick="setTool('roundrect')" id="tool-roundrect" title="Rounded Rect (Q)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/></svg>
+                    Round
+                </button>
+                <button onclick="setTool('circle')" id="tool-circle" title="Circle (C)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+                    Circle
+                </button>
+                <button onclick="setTool('ellipse')" id="tool-ellipse" title="Ellipse (E)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="12" rx="10" ry="6"/></svg>
+                    Ellipse
+                </button>
+                <button onclick="setTool('triangle')" id="tool-triangle" title="Triangle (T)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,4 22,20 2,20"/></svg>
+                    Triangle
+                </button>
+                <button onclick="setTool('diamond')" id="tool-diamond" title="Diamond (D)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,3 21,12 12,21 3,12"/></svg>
+                    Diamond
+                </button>
+                <button onclick="setTool('star')" id="tool-star" title="Star (U)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+                    Star
+                </button>
+                <button onclick="setTool('pentagon')" id="tool-pentagon" title="Pentagon (N)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,3 21,9.5 17.5,20 6.5,20 3,9.5"/></svg>
+                    Penta
+                </button>
+                <button onclick="setTool('hexagon')" id="tool-hexagon" title="Hexagon (H)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,3 20.5,8 20.5,16 12,21 3.5,16 3.5,8"/></svg>
+                    Hex
+                </button>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Tool Group -->
+        <div class="tool-section">
+            <div class="tool-section-label">Tools</div>
+            <div class="tool-group">
+                <button onclick="setTool('select')" id="tool-select" title="Marquee Select (S)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 2"><rect x="3" y="3" width="18" height="18" rx="1"/></svg>
+                    Select
+                </button>
+                <button onclick="setTool('text')" id="tool-text" title="Text Tool (W)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+                    Text
+                </button>
+                <button onclick="setTool('paint')" id="tool-paint" title="Paint Bucket (P)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 11V9L10 2l-7 7 7 7 2-2"/><path d="M14 14l5.5 5.5a2.121 2.121 0 003-3L16.5 11"/></svg>
+                    Fill
+                </button>
+                <button onclick="setTool('eyedropper')" id="tool-eyedropper" title="Eyedropper (I)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 22l1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="M15.5 5.5l2.3 2.3M16 3l4 1-1 4-2.3-2.3-1.7 1.7L13 9l-4-4 1.5-1.5 1.7-1.7L16 3z"/></svg>
+                    Pick
+                </button>
+                <button onclick="changeFreeMode('eraser')" id="tool-eraser" title="Eraser (X)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 20H7L3 16l10-10 7 7-1.5 1.5"/><path d="M6.5 17.5l5-5"/></svg>
+                    Eraser
+                </button>
+            </div>
         </div>
 
         <div class="divider"></div>
 
         <!-- Modifiers -->
-        <div class="tool-group">
-            <button id="btn-gradient"  onclick="toggleGradient()"  title="Gradient Fill">🌈 Gradient</button>
-            <button id="btn-fill"      onclick="toggleFill()"       title="Fill Shapes">🔲 Fill</button>
-            <button id="btn-pressure"  onclick="togglePressure()"   title="Pressure Sensitivity">✒️ Pressure</button>
+        <div class="tool-section">
+            <div class="tool-section-label">Style</div>
+            <div class="tool-group">
+                <button id="btn-gradient" onclick="toggleGradient()" title="Gradient Fill">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><defs><linearGradient id="gIcon" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#f472b6"/></linearGradient></defs><rect x="3" y="7" width="18" height="10" rx="2" fill="url(#gIcon)" stroke="none"/></svg>
+                    Gradient
+                </button>
+                <button id="btn-fill" onclick="toggleFill()" title="Fill Shapes">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                    Fill
+                </button>
+                <button id="btn-pressure" onclick="togglePressure()" title="Pressure Sensitivity">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><circle cx="10" cy="14" r="1" fill="currentColor"/></svg>
+                    Pressure
+                </button>
+            </div>
         </div>
 
         <div class="divider"></div>
@@ -51,11 +154,17 @@
         <!-- Colors -->
         <div class="tool-group color-group">
             <div class="slider-group">
-                <label for="col">Start</label>
+                <label for="col">
+                    <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="currentColor"/></svg>
+                    Start
+                </label>
                 <input type="color" id="col" value="#000000">
             </div>
             <div class="slider-group" id="col2-wrapper" style="opacity: 0.3; transition: opacity 0.3s ease; pointer-events: none;">
-                <label for="col2">End</label>
+                <label for="col2">
+                    <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+                    End
+                </label>
                 <input type="color" id="col2" value="#ffffff">
             </div>
         </div>
@@ -83,13 +192,19 @@
         <!-- Sliders -->
         <div class="tool-group">
             <div class="slider-group">
-                <label>Size</label>
+                <label>
+                    <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="currentColor" opacity="0.6"/></svg>
+                    Size
+                </label>
                 <input type="range" id="brushSize" min="1" max="80" value="5"
                     oninput="document.getElementById('brushSizeVal').innerText = this.value">
                 <span id="brushSizeVal" class="val-badge">5</span>
             </div>
             <div class="slider-group">
-                <label>Opacity</label>
+                <label>
+                    <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="currentColor" opacity="0.4"/><circle cx="5" cy="5" r="2" fill="currentColor"/></svg>
+                    Opacity
+                </label>
                 <input type="range" id="opacity" min="1" max="100" value="100"
                     oninput="document.getElementById('opacityVal').innerText = this.value + '%'">
                 <span id="opacityVal" class="val-badge">100%</span>
@@ -108,8 +223,7 @@
         <div class="tool-group">
             <div class="slider-group">
                 <label>Blend</label>
-                <select id="blend-mode" class="tool-select"
-                    onchange="blendMode = this.value">
+                <select id="blend-mode" class="tool-select" onchange="blendMode = this.value">
                     <option value="source-over">Normal</option>
                     <option value="multiply">Multiply</option>
                     <option value="screen">Screen</option>
@@ -134,17 +248,28 @@
 
         <!-- History / Zoom -->
         <div class="tool-group">
-            <button onclick="undo()"          title="Undo (Ctrl+Z)">↩️</button>
-            <button onclick="redo()"          title="Redo (Ctrl+Y)">↪️</button>
-            <button onclick="zoomCanvas(1.2)" title="Zoom In">🔍</button>
-            <button onclick="zoomCanvas(0.8)" title="Zoom Out">🔎</button>
+            <button onclick="undo()" title="Undo (Ctrl+Z)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/></svg>
+            </button>
+            <button onclick="redo()" title="Redo (Ctrl+Y)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 019-9 9 9 0 016 2.3l3 2.7"/></svg>
+            </button>
+            <button onclick="zoomCanvas(1.2)" title="Zoom In">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+            </button>
+            <button onclick="zoomCanvas(0.8)" title="Zoom Out">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+            </button>
         </div>
 
         <div class="divider"></div>
 
         <!-- Grid / Actions -->
         <div class="tool-group">
-            <button id="btn-grid" onclick="toggleGrid()" class="btn-neutral" title="Toggle Grid (G)">🏁 Grid</button>
+            <button id="btn-grid" onclick="toggleGrid()" class="btn-neutral" title="Toggle Grid (G)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                Grid
+            </button>
             <select id="grid-size" class="tool-select" title="Grid cell size"
                 onchange="gridSize = parseInt(this.value); needsRedraw = true;">
                 <option value="5">5px</option>
@@ -154,21 +279,41 @@
                 <option value="80">80px</option>
                 <option value="100">100px</option>
             </select>
-            <button onclick="openFilterModal()" class="btn-neutral" title="Filters">🎛️ Filters</button>
-            <button onclick="exitMode()"        class="btn-neutral" title="Exit Mode">❌ Exit</button>
-            <button onclick="clr()"             class="btn-danger"  title="Clear Canvas">🗑️ Clear</button>
-            <button onclick="openSaveModal()"   class="btn-success" title="Save as PNG">💾 Save</button>
+            <button onclick="openFilterModal()" class="btn-neutral" title="Filters">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                Filters
+            </button>
+            <button onclick="exitMode()" class="btn-neutral" title="Exit Mode">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                Exit
+            </button>
+            <button onclick="clr()" class="btn-danger" title="Clear Canvas">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                Clear
+            </button>
+            <button onclick="openSaveModal()" class="btn-success" title="Save (Ctrl+S)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Save
+            </button>
         </div>
 
     </div><!-- /#toolbar -->
 
     <!-- ── SUB-TOOLBARS ── -->
-    <!-- Free/Brush sub-toolbar -->
     <div id="freeSubToolbar">
-        <span class="sub-label">Brush Type:</span>
-        <button onclick="changeFreeMode('pen')"    id="sub-pen"    class="active">🖋️ Pen</button>
-        <button onclick="changeFreeMode('brush')"  id="sub-brush">🖌️ Brush</button>
-        <button onclick="changeFreeMode('spray')"  id="sub-spray">💨 Spray</button>
+        <span class="sub-label">Brush:</span>
+        <button onclick="changeFreeMode('pen')" id="sub-pen" class="active">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Pen
+        </button>
+        <button onclick="changeFreeMode('brush')" id="sub-brush">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.06 11.9l8.07-8.06a2.85 2.85 0 014.03 4.03l-8.06 8.08"/><path d="M7.07 14.94C5.79 17.09 5.79 19.5 7 21s3.79 1.87 5.89.72l3.83-3.83a11.7 11.7 0 001.61-2.4L7.07 14.94z"/></svg>
+            Brush
+        </button>
+        <button onclick="changeFreeMode('spray')" id="sub-spray">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l3 9"/><path d="M6 12a3 3 0 006 0V6H6v6z"/><line x1="14" y1="5" x2="14" y2="5.01"/><line x1="17" y1="4" x2="17" y2="4.01"/><line x1="16" y1="8" x2="16" y2="8.01"/><line x1="19" y1="6" x2="19" y2="6.01"/><line x1="20" y1="10" x2="20" y2="10.01"/></svg>
+            Spray
+        </button>
     </div>
 
     <!-- Text sub-toolbar -->
@@ -189,46 +334,96 @@
                 oninput="document.getElementById('fontSizeVal').innerText = this.value + 'px'">
             <span id="fontSizeVal" class="val-badge">32px</span>
         </div>
-        <button id="btn-bold"   onclick="toggleFontStyle('bold')"   title="Bold">𝐁 Bold</button>
-        <button id="btn-italic" onclick="toggleFontStyle('italic')" title="Italic">𝐼 Italic</button>
+        <button id="btn-bold" onclick="toggleFontStyle('bold')" title="Bold">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 4h8a4 4 0 010 8H6z"/><path d="M6 12h9a4 4 0 010 8H6z"/></svg>
+            Bold
+        </button>
+        <button id="btn-italic" onclick="toggleFontStyle('italic')" title="Italic">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>
+            Italic
+        </button>
         <span class="sub-label" style="font-size:10px; color:#94a3b8;">Click canvas to place · Type · Enter to commit · Esc to cancel</span>
     </div>
 
     <!-- Selection sub-toolbar -->
     <div id="selectSubToolbar" style="display:none;">
         <span class="sub-label">Selection:</span>
-        <button onclick="cropToSelection()"  title="Crop to selection">✂️ Crop</button>
-        <button onclick="copySelection()"    title="Copy selection">📋 Copy</button>
-        <button onclick="clearSelection()"   title="Clear selection">🗑️ Clear</button>
-        <button onclick="deselect()"         title="Deselect (Esc)">✖️ Deselect</button>
+        <button onclick="cropToSelection()" title="Crop to selection">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2V7a2 2 0 012-2h16a2 2 0 012 2v9a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Crop
+        </button>
+        <button onclick="copySelection()" title="Copy selection">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copy
+        </button>
+        <button onclick="clearSelection()" title="Clear selection">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg>
+            Clear
+        </button>
+        <button onclick="deselect()" title="Deselect (Esc)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Deselect
+        </button>
     </div>
 
-    <!-- ── WORKSPACE (canvas + panels) ── -->
+    <!-- ── WORKSPACE ── -->
     <div id="workspace">
 
-        <!-- Left: Navigator + Layers -->
+        <!-- Left Panel -->
         <aside id="left-panel">
 
             <!-- Navigator -->
             <div class="panel-section" id="navigator-panel">
-                <div class="panel-header">🗺️ Navigator</div>
-                <div class="mini-preview-wrap">
+                <div class="panel-header">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                    Navigator
+                </div>
+                <div class="mini-preview-wrap" id="mini-preview-wrap">
                     <canvas id="mini-preview-canvas"></canvas>
                     <div id="nav-viewport"></div>
                 </div>
             </div>
 
+            <!-- Canvas Info -->
+            <div class="panel-section" id="canvas-info-panel">
+                <div class="panel-header">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                    Canvas
+                </div>
+                <div class="canvas-info-row">
+                    <span class="canvas-info-label">Size</span>
+                    <span id="canvas-size-display" class="canvas-info-val">2000 × 2000</span>
+                </div>
+                <div class="canvas-info-row">
+                    <span class="canvas-info-label">Preset</span>
+                    <span id="canvas-preset-display" class="canvas-info-val">Custom</span>
+                </div>
+                <button onclick="openCanvasModal()" class="canvas-resize-btn">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    Change Canvas Size
+                </button>
+            </div>
+
             <!-- Layers -->
             <div class="panel-section" id="layers-panel">
                 <div class="panel-header">
-                    🗂️ Layers
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                    Layers
                     <span id="active-layer-display" class="active-layer-tag">Background</span>
                 </div>
                 <div class="layer-actions">
-                    <button onclick="addLayer()"       title="New Layer">＋</button>
-                    <button onclick="duplicateLayer()" title="Duplicate Layer">⧉</button>
-                    <button onclick="mergeDown()"      title="Merge Down">⬇</button>
-                    <button onclick="deleteLayer()"    title="Delete Layer" class="btn-danger-sm">🗑</button>
+                    <button onclick="addLayer()" title="New Layer">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
+                    <button onclick="duplicateLayer()" title="Duplicate Layer">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    </button>
+                    <button onclick="mergeDown()" title="Merge Down">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 6 12 10 16 6"/><line x1="12" y1="2" x2="12" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+                    </button>
+                    <button onclick="deleteLayer()" title="Delete Layer" class="btn-danger-sm">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg>
+                    </button>
                 </div>
                 <div id="layer-list"></div>
                 <div class="layer-opacity-row">
@@ -245,15 +440,21 @@
 
             <!-- Swatches -->
             <div class="panel-section" id="swatches-panel">
-                <div class="panel-header">🎨 Swatches</div>
+                <div class="panel-header">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="19.5" cy="10.5" r="2.5"/><circle cx="7.5" cy="7.5" r="2.5"/><circle cx="4.5" cy="14.5" r="2.5"/><circle cx="9.5" cy="18.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/></svg>
+                    Swatches
+                </div>
                 <div class="swatch-palette-row">
-                    <button onclick="loadPalette('material')" class="swatch-palette-btn" title="Material">Material</button>
-                    <button onclick="loadPalette('pastel')"   class="swatch-palette-btn" title="Pastel">Pastel</button>
-                    <button onclick="loadPalette('neon')"     class="swatch-palette-btn" title="Neon">Neon</button>
-                    <button onclick="loadPalette('earth')"    class="swatch-palette-btn" title="Earth">Earth</button>
+                    <button onclick="loadPalette('material')" class="swatch-palette-btn">Material</button>
+                    <button onclick="loadPalette('pastel')"   class="swatch-palette-btn">Pastel</button>
+                    <button onclick="loadPalette('neon')"     class="swatch-palette-btn">Neon</button>
+                    <button onclick="loadPalette('earth')"    class="swatch-palette-btn">Earth</button>
                 </div>
                 <div id="swatch-grid"></div>
-                <button onclick="addSwatch()" class="swatch-add-btn" title="Add current color to swatches">＋ Add Color</button>
+                <button onclick="addSwatch()" class="swatch-add-btn">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Add Color
+                </button>
             </div>
 
         </aside>
@@ -261,7 +462,6 @@
         <!-- Canvas -->
         <main id="canvas-container">
             <canvas id="canvas" width="800" height="600"></canvas>
-            <!-- Text cursor overlay -->
             <div id="text-cursor" style="display:none;"></div>
         </main>
 
@@ -274,13 +474,18 @@
         <div class="status-item">Zoom: <strong id="zoom-level">100%</strong></div>
         <div class="status-sep">|</div>
         <div class="status-item">Pos: <strong id="mouse-pos">0, 0</strong></div>
+        <div class="status-sep">|</div>
+        <div class="status-item">Canvas: <strong id="status-canvas-size">2000 × 2000</strong></div>
         <div class="hint">Shift+Drag to pan · Scroll to zoom · Dbl-click to reset</div>
     </footer>
 
     <!-- ── SAVE MODAL ── -->
     <div id="save-modal-overlay" class="modal-overlay" style="display:none;">
         <div class="modal">
-            <h3 class="modal-title">💾 Export Image</h3>
+            <h3 class="modal-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Export Image
+            </h3>
 
             <div class="modal-section">
                 <label class="modal-label">File Format</label>
@@ -289,21 +494,21 @@
                         <input type="radio" name="save-format" value="png" checked>
                         <span class="format-card">
                             <strong>PNG</strong>
-                            <small>Lossless · Supports transparency</small>
+                            <small>Lossless · Transparency</small>
                         </span>
                     </label>
                     <label class="format-option">
                         <input type="radio" name="save-format" value="jpeg">
                         <span class="format-card">
                             <strong>JPG</strong>
-                            <small>Smaller file · No transparency</small>
+                            <small>Smaller · No transparency</small>
                         </span>
                     </label>
                     <label class="format-option">
                         <input type="radio" name="save-format" value="webp">
                         <span class="format-card">
                             <strong>WebP</strong>
-                            <small>Best compression · Modern browsers</small>
+                            <small>Best compression · Modern</small>
                         </span>
                     </label>
                 </div>
@@ -336,7 +541,7 @@
                         <input type="radio" name="save-bg" value="transparent">
                         <span class="bg-card">
                             <span class="bg-preview bg-transparent"></span>
-                            <strong>Transparent</strong>
+                            <strong>None</strong>
                         </span>
                     </label>
                 </div>
@@ -352,7 +557,94 @@
 
             <div class="modal-actions">
                 <button class="modal-btn-cancel" onclick="closeSaveModal()">Cancel</button>
-                <button class="modal-btn-save"   onclick="doSave()">⬇️ Download</button>
+                <button class="modal-btn-save" onclick="doSave()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Download
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── CANVAS SIZE MODAL ── -->
+    <div id="canvas-modal-overlay" class="modal-overlay" style="display:none;">
+        <div class="modal">
+            <h3 class="modal-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                Canvas Size
+            </h3>
+
+            <div class="modal-section">
+                <label class="modal-label">Presets</label>
+                <div class="canvas-preset-grid">
+                    <button class="canvas-preset-btn" onclick="applyCanvasPreset('a4-portrait')" title="210 × 297 mm @ 96dpi = 794 × 1123px">
+                        <svg width="16" height="22" viewBox="0 0 16 22"><rect x="0.5" y="0.5" width="15" height="21" rx="1" fill="none" stroke="currentColor" stroke-width="1"/></svg>
+                        <span>A4</span>
+                        <small>Portrait</small>
+                    </button>
+                    <button class="canvas-preset-btn" onclick="applyCanvasPreset('a4-landscape')" title="297 × 210 mm = 1123 × 794px">
+                        <svg width="22" height="16" viewBox="0 0 22 16"><rect x="0.5" y="0.5" width="21" height="15" rx="1" fill="none" stroke="currentColor" stroke-width="1"/></svg>
+                        <span>A4</span>
+                        <small>Landscape</small>
+                    </button>
+                    <button class="canvas-preset-btn" onclick="applyCanvasPreset('a5-portrait')" title="148 × 210 mm = 559 × 794px">
+                        <svg width="14" height="20" viewBox="0 0 14 20"><rect x="0.5" y="0.5" width="13" height="19" rx="1" fill="none" stroke="currentColor" stroke-width="1"/></svg>
+                        <span>A5</span>
+                        <small>Portrait</small>
+                    </button>
+                    <button class="canvas-preset-btn" onclick="applyCanvasPreset('a5-landscape')" title="210 × 148 mm = 794 × 559px">
+                        <svg width="20" height="14" viewBox="0 0 20 14"><rect x="0.5" y="0.5" width="19" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1"/></svg>
+                        <span>A5</span>
+                        <small>Landscape</small>
+                    </button>
+                    <button class="canvas-preset-btn" onclick="applyCanvasPreset('hd')">
+                        <svg width="20" height="14" viewBox="0 0 20 14"><rect x="0.5" y="0.5" width="19" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1"/><text x="10" y="9" text-anchor="middle" font-size="5" fill="currentColor" font-family="monospace">HD</text></svg>
+                        <span>HD</span>
+                        <small>1280 × 720</small>
+                    </button>
+                    <button class="canvas-preset-btn" onclick="applyCanvasPreset('fhd')">
+                        <svg width="20" height="12" viewBox="0 0 20 12"><rect x="0.5" y="0.5" width="19" height="11" rx="1" fill="none" stroke="currentColor" stroke-width="1"/><text x="10" y="7.5" text-anchor="middle" font-size="4" fill="currentColor" font-family="monospace">FHD</text></svg>
+                        <span>Full HD</span>
+                        <small>1920 × 1080</small>
+                    </button>
+                    <button class="canvas-preset-btn" onclick="applyCanvasPreset('square-sm')">
+                        <svg width="16" height="16" viewBox="0 0 16 16"><rect x="0.5" y="0.5" width="15" height="15" rx="1" fill="none" stroke="currentColor" stroke-width="1"/></svg>
+                        <span>Square</span>
+                        <small>1000 × 1000</small>
+                    </button>
+                    <button class="canvas-preset-btn" onclick="applyCanvasPreset('square-lg')">
+                        <svg width="18" height="18" viewBox="0 0 18 18"><rect x="0.5" y="0.5" width="17" height="17" rx="1" fill="none" stroke="currentColor" stroke-width="1"/></svg>
+                        <span>Square L</span>
+                        <small>2000 × 2000</small>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <label class="modal-label">Custom Size</label>
+                <div class="canvas-custom-row">
+                    <div class="canvas-dim-group">
+                        <label class="canvas-dim-label">Width (px)</label>
+                        <input type="number" id="canvas-w-input" class="modal-input canvas-dim-input" value="2000" min="100" max="8000" placeholder="Width" inputmode="numeric">
+                    </div>
+                    <div class="canvas-link-icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                    </div>
+                    <div class="canvas-dim-group">
+                        <label class="canvas-dim-label">Height (px)</label>
+                        <input type="number" id="canvas-h-input" class="modal-input canvas-dim-input" value="2000" min="100" max="8000" placeholder="Height" inputmode="numeric">
+                    </div>
+                </div>
+                <p class="modal-note" style="margin-top:10px;">
+                    ⚠️ Resizing will clear all layers and cannot be undone.
+                </p>
+            </div>
+
+            <div class="modal-actions">
+                <button class="modal-btn-cancel" onclick="closeCanvasModal()">Cancel</button>
+                <button class="modal-btn-save" onclick="applyCanvasCustom()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Apply
+                </button>
             </div>
         </div>
     </div>
@@ -360,37 +652,82 @@
     <!-- ── FILTER MODAL ── -->
     <div id="filter-modal-overlay" class="modal-overlay" style="display:none;">
         <div class="modal">
-            <h3 class="modal-title">🎛️ Filters &amp; Transforms</h3>
+            <h3 class="modal-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                Filters &amp; Transforms
+            </h3>
 
             <div class="modal-section">
                 <label class="modal-label">Color Adjustments</label>
                 <div class="filter-grid">
-                    <button onclick="applyFilter('grayscale')"   class="filter-btn">⬜ Grayscale</button>
-                    <button onclick="applyFilter('sepia')"       class="filter-btn">🟤 Sepia</button>
-                    <button onclick="applyFilter('invert')"      class="filter-btn">🔄 Invert</button>
-                    <button onclick="applyFilter('brighten')"    class="filter-btn">☀️ Brighten</button>
-                    <button onclick="applyFilter('darken')"      class="filter-btn">🌑 Darken</button>
-                    <button onclick="applyFilter('saturate')"    class="filter-btn">🌈 Saturate</button>
-                    <button onclick="applyFilter('desaturate')"  class="filter-btn">🩶 Desaturate</button>
+                    <button onclick="applyFilter('grayscale')"  class="filter-btn">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 000 20V2z" fill="currentColor"/></svg>
+                        Grayscale
+                    </button>
+                    <button onclick="applyFilter('sepia')"      class="filter-btn">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9" stroke-linecap="round"/><path d="M12 3c2 3 3 6 3 9s-1 6-3 9" stroke-linecap="round"/></svg>
+                        Sepia
+                    </button>
+                    <button onclick="applyFilter('invert')"     class="filter-btn">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V12M12 2v2M8 21.5L12 12M16 21.5L12 12"/><circle cx="12" cy="12" r="10"/></svg>
+                        Invert
+                    </button>
+                    <button onclick="applyFilter('brighten')"   class="filter-btn">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                        Brighten
+                    </button>
+                    <button onclick="applyFilter('darken')"     class="filter-btn">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                        Darken
+                    </button>
+                    <button onclick="applyFilter('saturate')"   class="filter-btn">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                        Saturate
+                    </button>
+                    <button onclick="applyFilter('desaturate')" class="filter-btn">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke-dasharray="3 2"/></svg>
+                        Desaturate
+                    </button>
                 </div>
             </div>
 
             <div class="modal-section">
                 <label class="modal-label">Convolution Filters</label>
                 <div class="filter-grid">
-                    <button onclick="applyFilter('blur')"        class="filter-btn">💧 Blur</button>
-                    <button onclick="applyFilter('sharpen')"     class="filter-btn">🔪 Sharpen</button>
-                    <button onclick="applyFilter('emboss')"      class="filter-btn">🪨 Emboss</button>
-                    <button onclick="applyFilter('edgeDetect')"  class="filter-btn">📐 Edge Detect</button>
+                    <button onclick="applyFilter('blur')"       class="filter-btn">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" stroke-dasharray="2 1"/><circle cx="12" cy="12" r="5" stroke-dasharray="2 1"/></svg>
+                        Blur
+                    </button>
+                    <button onclick="applyFilter('sharpen')"    class="filter-btn">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 3 19 19 12 15 5 19"/></svg>
+                        Sharpen
+                    </button>
+                    <button onclick="applyFilter('emboss')"     class="filter-btn">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8l4-4 12 12-4 4L4 8z"/><path d="M8 16l-4 4"/></svg>
+                        Emboss
+                    </button>
+                    <button onclick="applyFilter('edgeDetect')" class="filter-btn">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="3" x2="9" y2="9"/></svg>
+                        Edge Detect
+                    </button>
                 </div>
             </div>
 
             <div class="modal-section">
                 <label class="modal-label">Transform</label>
                 <div class="filter-grid">
-                    <button onclick="applyFilter('flipH')"       class="filter-btn">↔️ Flip H</button>
-                    <button onclick="applyFilter('flipV')"       class="filter-btn">↕️ Flip V</button>
-                    <button onclick="applyFilter('rotate90')"    class="filter-btn">🔁 Rotate 90°</button>
+                    <button onclick="applyFilter('flipH')"      class="filter-btn">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v14a2 2 0 002 2h3"/><path d="M16 3h3a2 2 0 012 2v14a2 2 0 01-2 2h-3"/><line x1="12" y1="20" x2="12" y2="4"/></svg>
+                        Flip H
+                    </button>
+                    <button onclick="applyFilter('flipV')"      class="filter-btn">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8V5a2 2 0 00-2-2H5a2 2 0 00-2 2v3"/><path d="M21 16v3a2 2 0 01-2 2H5a2 2 0 01-2-2v-3"/><line x1="4" y1="12" x2="20" y2="12"/></svg>
+                        Flip V
+                    </button>
+                    <button onclick="applyFilter('rotate90')"   class="filter-btn">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+                        Rotate 90°
+                    </button>
                 </div>
             </div>
 
@@ -402,7 +739,7 @@
 
     <!-- ── RESTORE SESSION TOAST ── -->
     <div id="restore-toast">
-        <span class="restore-icon">🖌️</span>
+        <svg class="restore-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
         <div class="restore-text">
             <strong>Previous session found</strong>
             <span>Restore your last drawing?</span>
