@@ -40,24 +40,49 @@ body {
 header {
     background: var(--bg-panel);
     border-bottom: 1px solid #0f3460;
-    padding: 8px 16px;
+    padding: 6px 16px;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     gap: 12px;
     flex-shrink: 0;
 }
 
-h2 {
-    margin: 0;
-    color: var(--text-primary);
-    font-size: 17px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
+.header-logo {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    color: var(--text-primary);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
 }
+.header-logo svg { color: var(--accent); }
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.header-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    background: #1e2d4a;
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--fast);
+}
+.header-btn:hover { background: #2a3f6a; color: var(--text-primary); border-color: var(--accent-hover); }
 
 /* Autosave indicator */
 .autosave-indicator {
@@ -110,11 +135,29 @@ h2 {
     flex-shrink: 0;
 }
 
+/* Tool section labels */
+.tool-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+.tool-section-label {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    opacity: 0.6;
+    user-select: none;
+    white-space: nowrap;
+}
+
 /* Toolbar buttons */
 #toolbar button {
-    padding: 6px 10px;
+    padding: 5px 8px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 11px;
     font-family: 'DM Sans', sans-serif;
     font-weight: 500;
     border-radius: 6px;
@@ -123,6 +166,10 @@ h2 {
     color: var(--text-muted);
     transition: all var(--fast);
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    line-height: 1;
 }
 #toolbar button:hover {
     background: #2a3f6a;
@@ -302,6 +349,9 @@ button.active {
     border-radius: 6px;
     cursor: pointer;
     transition: all var(--smooth);
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 #freeSubToolbar button:hover,
 #textSubToolbar button:hover,
@@ -383,11 +433,11 @@ button.active {
     cursor: crosshair;
 }
 #nav-viewport {
-    position: fixed;
+    position: absolute;
     border: 1.5px solid var(--accent);
     pointer-events: none;
     z-index: 50;
-    box-shadow: 0 0 0 1px rgba(59,130,246,.3);
+    box-shadow: 0 0 0 1px rgba(59,130,246,.3), inset 0 0 0 1px rgba(59,130,246,.15);
     border-radius: 1px;
 }
 
@@ -892,3 +942,328 @@ canvas {
 }
 .filter-btn:hover { background: #1e3a6e; color: #e2e8f0; border-color: var(--accent); transform: translateY(-1px); }
 .filter-btn:active { transform: translateY(0); }
+/* ── Canvas Info Panel ── */
+.canvas-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+.canvas-info-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: var(--text-muted);
+    user-select: none;
+}
+.canvas-info-val {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--accent-hover);
+}
+.canvas-resize-btn {
+    width: 100%;
+    margin-top: 6px;
+    padding: 6px;
+    font-size: 11px;
+    font-family: 'DM Sans', sans-serif;
+    background: #1e2d4a;
+    color: var(--text-muted);
+    border: 1px dashed var(--border-color);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all var(--fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+.canvas-resize-btn:hover { background: #2a3f6a; color: var(--text-primary); border-color: var(--accent); border-style: solid; }
+
+/* ── Canvas Preset Modal ── */
+.canvas-preset-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+.canvas-preset-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 10px 6px;
+    background: #0f172a;
+    border: 1.5px solid #2d3a5a;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .15s ease;
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+}
+.canvas-preset-btn:hover { border-color: var(--accent); background: #1e3a6e; color: var(--text-primary); }
+.canvas-preset-btn.selected { border-color: var(--accent); background: #1e3a6e; box-shadow: 0 0 0 2px rgba(59,130,246,.25); }
+.canvas-preset-btn span { font-size: 12px; font-weight: 700; color: inherit; }
+.canvas-preset-btn small { font-size: 9px; color: #475569; line-height: 1.2; text-align: center; }
+.canvas-preset-btn svg { color: var(--text-muted); flex-shrink: 0; }
+.canvas-preset-btn:hover svg, .canvas-preset-btn.selected svg { color: var(--accent-hover); }
+
+.canvas-custom-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+}
+.canvas-dim-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.canvas-dim-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: var(--text-muted);
+}
+.canvas-dim-input {
+    text-align: center;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    padding: 10px 8px !important;
+}
+.canvas-link-icon {
+    color: var(--text-muted);
+    padding-bottom: 8px;
+    flex-shrink: 0;
+}
+
+/* ── Filter button with icon ── */
+.filter-btn {
+    padding: 8px 6px;
+    font-size: 11px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    background: #0f172a;
+    color: #94a3b8;
+    border: 1.5px solid #2d3a5a;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+/* ── Modal save/cancel button icons ── */
+.modal-btn-save {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE & CROSS-DEVICE COMPATIBILITY
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Panel toggle button (mobile only) ── */
+#panel-toggle-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 5px 10px;
+    background: #1e2d4a;
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--fast);
+    flex-shrink: 0;
+}
+#panel-toggle-btn:hover { background: #2a3f6a; color: var(--text-primary); border-color: var(--accent-hover); }
+#panel-toggle-btn.active { background: var(--accent); color: #fff; border-color: var(--accent-hover); }
+
+/* ── Mobile panel overlay ── */
+#panel-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 400;
+    backdrop-filter: blur(2px);
+}
+#panel-overlay.visible { display: block; }
+
+/* ── Touch target improvements ── */
+@media (pointer: coarse) {
+    #toolbar button {
+        padding: 8px 10px;
+        font-size: 12px;
+        min-height: 38px;
+    }
+    .header-btn { padding: 7px 12px; min-height: 36px; }
+    #toolbar input[type="color"] { height: 38px; width: 48px; }
+    .layer-actions button { padding: 8px; min-height: 36px; }
+    .swatch-cell { width: 28px; height: 28px; }
+    .filter-btn { padding: 12px 8px; min-height: 44px; }
+    .modal-btn-cancel, .modal-btn-save { padding: 12px 20px; min-height: 44px; }
+    .canvas-preset-btn { padding: 14px 8px; min-height: 60px; }
+    .restore-yes, .restore-no { padding: 10px 18px; min-height: 40px; }
+}
+
+/* ── Tablet (≤900px) ── */
+@media (max-width: 900px) {
+    #left-panel {
+        width: 180px;
+        min-width: 160px;
+    }
+    #toolbar {
+        gap: 4px;
+        padding: 6px 8px;
+    }
+    .slider-group input[type="range"] { width: 65px; }
+}
+
+/* ── Mobile (≤640px) ── */
+@media (max-width: 640px) {
+    /* Show panel toggle button */
+    #panel-toggle-btn { display: flex; }
+
+    /* Header compacts */
+    header { padding: 5px 10px; gap: 8px; }
+    .header-logo { font-size: 13px; }
+    .header-logo svg { width: 16px; height: 16px; }
+    .autosave-indicator { display: none; }
+
+    /* Toolbar scrolls horizontally */
+    #toolbar {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        justify-content: flex-start;
+        padding: 6px 8px;
+        gap: 5px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    #toolbar::-webkit-scrollbar { display: none; }
+
+    /* Toolbar sections don't break */
+    .tool-section, .tool-group, .slider-group, .color-group, .divider { flex-shrink: 0; }
+
+    /* Slider widths shrink */
+    .slider-group input[type="range"] { width: 55px; }
+
+    /* Sub-toolbars scroll */
+    #freeSubToolbar, #textSubToolbar, #selectSubToolbar {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        justify-content: flex-start;
+        padding: 6px 10px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    #freeSubToolbar::-webkit-scrollbar,
+    #textSubToolbar::-webkit-scrollbar,
+    #selectSubToolbar::-webkit-scrollbar { display: none; }
+
+    /* Left panel slides in from the left as a drawer */
+    #left-panel {
+        position: fixed;
+        left: -260px;
+        top: 0;
+        bottom: 0;
+        width: 240px !important;
+        min-width: 240px !important;
+        max-width: 240px !important;
+        z-index: 500;
+        transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow-y: auto;
+        border-right: 1px solid var(--border-color);
+        box-shadow: none;
+    }
+    #left-panel.open {
+        left: 0;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+    }
+
+    /* Canvas area takes full width */
+    #canvas-container { padding: 12px; }
+
+    /* Status bar condenses */
+    #status { gap: 6px; padding: 5px 10px; font-size: 11px; }
+    .hint { display: none; }
+    .status-sep { display: none; }
+    #status .status-item:nth-child(7),
+    #status .status-item:nth-child(8) { display: none; }
+
+    /* Restore toast stacks */
+    #restore-toast {
+        white-space: normal;
+        flex-wrap: wrap;
+        left: 12px;
+        right: 12px;
+        transform: translateX(0) translateY(16px);
+        width: auto;
+        bottom: 12px;
+        gap: 8px;
+    }
+    #restore-toast.visible {
+        transform: translateX(0) translateY(0);
+        animation: toastInMobile .25s cubic-bezier(.34,1.56,.64,1) forwards;
+    }
+    @keyframes toastInMobile {
+        from { opacity:0; transform: translateX(0) translateY(20px); }
+        to   { opacity:1; transform: translateX(0) translateY(0); }
+    }
+    .restore-text { flex: 1; min-width: 120px; }
+
+    /* Canvas preset grid 2 cols */
+    .canvas-preset-grid { grid-template-columns: repeat(2, 1fr); }
+
+    /* Modal full-width on mobile */
+    .modal { padding: 20px 16px; width: 100%; max-width: calc(100vw - 24px); }
+    .modal-title { font-size: 15px; margin-bottom: 16px; }
+
+    /* Format grid 3 cols still fits */
+    .format-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .format-card { padding: 8px 4px; }
+    .format-card strong { font-size: 11px; }
+
+    /* Filter grid 2 cols */
+    .filter-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Very small screens (≤380px) ── */
+@media (max-width: 380px) {
+    .header-logo span { display: none; }
+    #toolbar button { padding: 7px 7px; font-size: 10px; gap: 3px; }
+    #toolbar button svg { width: 12px; height: 12px; }
+    .format-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Landscape phone ── */
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
+    #left-panel { max-height: 100%; }
+    #canvas-container { padding: 8px; }
+    #status { display: none; }
+    header { padding: 4px 10px; }
+    #toolbar { padding: 4px 8px; }
+}
+
+/* ── iOS Safari rubber-band scroll prevention ── */
+html, body {
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ── Prevent canvas context menu on long-press (mobile) ── */
+canvas { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
